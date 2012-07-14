@@ -1,0 +1,223 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html>
+<head>
+<title>Image to HTML converter</title>
+<script src="quantize.js"></script>
+<script src="image2html.js"></script>
+<script type="text/javascript">
+var image;
+function openFile(e) {
+	var reader = new FileReader();
+
+	// Closure to capture the file information.
+	reader.onload = (function(theFile) {
+		return fileOpened;
+	})(e.target.files[0]);
+
+	reader.readAsDataURL(e.target.files[0]);
+}
+
+function displayImageData() {
+	image = this;
+	document.getElementById('image_width').innerHTML = this.width;
+	document.getElementById('image_height').innerHTML = this.height;
+	var newCanvas = document.createElement('canvas');
+	newCanvas.width=this.width;
+	newCanvas.height=this.height;
+	var context = newCanvas.getContext('2d');
+	context.drawImage(this, 0, 0);
+	var imageData = context.getImageData(0,0,this.width, this.height);
+	var colorSet = {};
+	var colorAlphaSet = {};
+	var colors = 0;
+	var colorsWithAlpha = 0;
+	hasAlpha = false;
+	for (var i = 0; i<imageData.data.length; i+=4)
+	{
+		var pixel = [imageData.data[i], imageData.data[i+1], imageData.data[i+2]]
+		var pixel_alpha = [imageData.data[i], imageData.data[i+1], imageData.data[i+2], imageData.data[i+3]];
+		if (pixel_alpha[3] < 255) hasAlpha = true;
+		if (! colorSet[pixel]) 
+			++colors;
+		if (! colorAlphaSet[pixel_alpha]) 
+			++colorsWithAlpha;
+		colorSet[pixel] = true;
+		colorAlphaSet[pixel_alpha] = true;
+	}
+	document.getElementById('color_quantization').value = Math.min(colors,256);
+	document.getElementById('color_quantization').max = Math.min(colors, 256);
+	if (hasAlpha) {
+		document.getElementById('colors').innerHTML = colors + " (" + colorsWithAlpha + " with transparency)";
+	}
+	else {
+		document.getElementById('colors').innerHTML = colors + " distinct colors";
+		document.getElementById('use_transparency').checked = false;
+		document.getElementById('alpha_quantization').value = 0;
+		document.getElementById('alpha').style.display = "none";
+	}
+	
+	document.getElementById('open_file').style.display = "none";
+	document.getElementById('file_details').style.display = "";
+
+}
+
+function fileSizeToText(size) {
+	if (size < 2000) {
+		return size + " bytes";
+	}
+	else if (size < 2000000) {
+		return Math.round(size/1024) + " kb";
+	}
+	else {
+		return Math.round(size/1024/1024) + " mb";
+	}
+}
+
+function fileOpened(e) {
+	document.getElementById('image_preview').src = e.target.result;
+	var img = new Image();
+	img.onload = displayImageData;
+	img.src = e.target.result;
+	document.getElementById('file_size').innerHTML = fileSizeToText(e.total);
+}
+
+function getConfiguration() {
+	return {
+		'colorQ': parseInt(document.getElementById('color_quantization').value),
+		'alphaQ': parseInt(document.getElementById('alpha_quantization').value),
+		'resizeFactor': parseInt(document.getElementById('resize_factor').value),
+		'algorithm': document.getElementById('compress_algorithm').value,
+		'useTransparency': document.getElementById('use_transparency').checked,
+		'useClasses': document.getElementById('use_classes').checked,
+		'strictHtml': document.getElementById('use_strict_html').checked,
+		'asHTML': function() {
+			return "" +
+				"Algorithm: " + this.algorithm + "<br>" + 
+				"Colors: " + this.colorQ + "<br>" + 
+				"Transparency levels: " + this.alphaQ + "<br>" + 
+				"Resolution: x" + this.resizeFactor + "<br>" + 
+				"HTML: " + (this.useClasses?'CSS classes':'inline styles')+", " + (this.strictHtml?'strict':'loose') + "<br>" + 
+				"";
+		}
+	}
+}
+
+var resultIdCounter = 0;
+function createHTML(e) {
+	document.getElementById("progress").style.display = "inline";
+	e.target.disabled = true;
+	setTimeout(function() {
+		var config = getConfiguration();
+		html = imageToHtml(config, image);
+		var resultDiv = document.createElement('div');
+		resultDiv.className="result";
+		resultDiv.innerHTML = 
+			"<input type='hidden' id='result" + resultIdCounter+"' value='" + htmlEscape(html) + "'/>" + 
+			"<div class='closeResult'><a href='#' onclick='closeResult(event);'>close</a></div>" +
+			"<table><tr><td>" + html + "</td><td class='table_pane'>" + config.asHTML() + "</td><td class='table_pane'>Size: " + 
+			fileSizeToText(html.length) + "<br><a href='#' onclick='openInNewWindow("+resultIdCounter+","+image.width+","+image.height+","+config.resizeFactor + ")'>Open in debug window</a><br><a href='#' onclick='openHtmlWindow("+resultIdCounter+")'>View HTML</a></td></tr></table>";
+		document.getElementById('results').appendChild(resultDiv);
+		++resultIdCounter;
+		document.getElementById("progress").style.display = "none";
+		e.target.disabled = false;
+	}, 10);
+
+}
+var DEBUG_PIXEL_WIDTH = 5;
+function openInNewWindow(resultId, width, height, factor) {
+	newWindow = window.open('','newWin','toolbar=yes,location=no,scrollbars=yes,status=no,width=630,height=400');
+	newWindow.document.open();
+	newWindow.document.write(
+		"<html>"+
+			"<head>"+
+				"<title>Image-to-HTML debug mode</title>"+
+				"<style>"+
+				"table {"+
+					"width:"+(width*DEBUG_PIXEL_WIDTH)+"px !important;"+
+					"height:"+(height*DEBUG_PIXEL_WIDTH)+"px !important;"+
+				"}" +
+				"td {"+
+					"width:"+(factor*DEBUG_PIXEL_WIDTH)+"px !important;"+
+					"height:"+(factor*DEBUG_PIXEL_WIDTH)+"px !important;"+
+					"border: 1px solid black !important;" +
+				"}" +
+				"</style>"+
+			"</head>" +
+			"<body>" + document.getElementById('result'+resultId).value + "</body></html>");
+	newWindow.document.close();
+
+}
+
+function htmlEscape(mystring) {
+	return mystring.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;").replace(/\'/g, "&#39;");
+}
+
+function openHtmlWindow(resultId, width, height, factor) {
+	newWindow = window.open('','newWin','toolbar=yes,location=no,scrollbars=yes,status=no,width=630,height=400');
+	newWindow.document.open();
+	newWindow.document.write(
+		"<html>"+
+			"<head>"+
+				"<title>Image-to-HTML source</title>"+
+			"</head>" +
+			"<body>" + htmlEscape(document.getElementById('result'+resultId).value) + "</body></html>");
+	newWindow.document.close();
+
+}
+function closeResult(event) {
+	var resultDiv = event.target.parentElement.parentElement;
+	resultDiv.parentElement.removeChild(resultDiv);
+}
+</script>
+<link rel="stylesheet" type="text/css" href="image2html.css"></link>
+</head>
+<body>
+<div id="open_file">
+<input type="file" name="imagefile" id="fileToOpen" onChange="openFile(event);" />
+</div>
+<table id="file_details" style="display:none">
+<tr>
+	<td rowspan="3"><img id="image_preview" style="max-width: 300px;max-height:100px;" /></td>
+	<td style="width:100%">Dimensions: <label id="image_width"></label>x<label id="image_height"></label></td>
+</tr>
+<tr>
+	<td>Distinct colors: <label id="colors"></label></td>
+</tr>
+<tr>
+	<td>File size: <label id="file_size"></label></td>
+</tr>
+<tr>
+<td colspan="2">
+<div id="colors" class="config">
+	Reduce colors: <input id="color_quantization" type="number" value="2" min="2" max="2"/><br>
+	Reduce resolution: x<input id="resize_factor" type="number" value="1" min="1" max="20"/></div>
+<div id="alpha" class="config"><input type="checkbox" id="use_transparency" checked /> Allow transparency levels: <input id="alpha_quantization" type="number" value="4" min="1" max="255"/></div>
+<div id="html_style" class="config">
+	<input type="checkbox" id="use_strict_html" /> Use strict HTML (less efficient)<br>
+	<input type="checkbox" id="use_classes" /> Use CSS classes (not compatible for e-mail)
+</div>
+<div id="compression" class="config">
+	Compression algorithm:
+	<select id="compress_algorithm">
+		<option value="none" selected>None</option>
+		<option value="h_rle">Horizontal RLE</option>
+		<option value="v_rle">Vertical RLE</option>
+		<option value="2d_rle">2D RLE</option>
+	</select>
+</div></td>
+</tr>
+<tr>
+<td colspan="2"><input type="button" value="Create HTML" onclick="createHTML(event)"><div id="progress">Processing...</div>
+</td>
+</tr>
+<tr>
+<td colspan="2" id="results_header">
+Results
+</td>
+</tr>
+<tr style="height:100%">
+<td colspan="2" style="height:100%;">
+<div  id="results"></div>
+</td></tr></table>
+</body>
+</html>
