@@ -60,3 +60,6 @@ td {
 	display: none;
 	margin: 5px;
 }
+#about {
+	border-top: 2px solid black;
+}

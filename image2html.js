@@ -1,3 +1,21 @@
+/*
+	This file is part of image2html (https://github.com/odednoam/image2html)
+
+	image2html is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	image2html is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with image2html.  If not, see <http://www.gnu.org/licenses/>.
+
+	(c) 2012 Oded Noam
+*/
 function imageDataToPixels(imageData) {
 	var pixels = [];
 	for (var i = 0; i<imageData.length; i+=4) {
