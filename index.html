@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
 <html>
 <head>
 <title>Image to HTML converter</title>
@@ -102,6 +102,7 @@ function fileOpened(e) {
 
 function getConfiguration() {
 	return {
+		'reduceColors': document.getElementById('reduce_colors').checked,
 		'colorQ': parseInt(document.getElementById('color_quantization').value),
 		'alphaQ': parseInt(document.getElementById('alpha_quantization').value),
 		'resizeFactor': parseInt(document.getElementById('resize_factor').value),
@@ -112,7 +113,7 @@ function getConfiguration() {
 		'asHTML': function() {
 			return "" +
 				"Algorithm: " + this.algorithm + "<br>" + 
-				"Colors: " + this.colorQ + "<br>" + 
+				"Colors: " + (this.reduceColors?this.colorQ:"original") + "<br>" + 
 				"Transparency levels: " + this.alphaQ + "<br>" + 
 				"Resolution: x" + this.resizeFactor + "<br>" + 
 				"HTML: " + (this.useClasses?'CSS classes':'inline styles')+", " + (this.strictHtml?'strict':'loose') + "<br>" + 
@@ -193,6 +194,25 @@ function closeResult(event) {
 <body>
 <div id="open_file">
 <input type="file" name="imagefile" id="fileToOpen" onChange="openFile(event);" />
+<br/><br/>
+This tool uses JavaScript to convert an image to plain HTML, which can then be used in rich-text e-mail.<br/>
+It supports:
+<ul>
+<li>Reading an image file and converting it to HTML
+<li>A choice of compression: Horizontal RLE, Vertical RLE and 2D RLE
+<li>Supports image transparency for GIF and PNG images
+<li>Some further compression techniques, such as using the most common color as the table <li>background to avoid repeating it
+<li>Choice whether to use CSS styles (better compression but lacks support from some mail clients, including GMail)
+<li>Choice of whether to use strict HTML, or loose HTML which takes even less space
+</ul>
+Known issues: (if you can fix, please do so on <a href="https://github.com/odednoam/image2html">github</a> or discuss the fixes on my <a href="http://odednoam.wordpress.com/2012/07/14/converting-bitmap-images-to-plain-html/">blog</a>)
+<ul>
+<li>The algorithm used to find squares in 2D RLE is not optimal, and possibly images could be compressed better.
+<li>Since compression doesn’t work well for images with too many different pixel colors, I added support for color reduction (quantization) taken from https://gist.github.com/1104622. Many desktop tools have better color reduction, so you might get better quality if you reduce colors on your PC using an image editing program rather than the internal tool.
+</ul>
+Complete source code is available under the GPL at <a href="https://github.com/odednoam/image2html">https://github.com/odednoam/image2html</a>
+<br/><br/>
+Copyright &copy;2012 Oded Noam.
 </div>
 <table id="file_details" style="display:none">
 <tr>
@@ -208,7 +228,7 @@ function closeResult(event) {
 <tr>
 <td colspan="2">
 <div id="colors" class="config">
-	Reduce colors: <input id="color_quantization" type="number" value="2" min="2" max="2"/><br>
+	<input type="checkbox" id="reduce_colors" /> Reduce colors: <input id="color_quantization" type="number" value="2" min="2" max="2"/><br>
 	Reduce resolution: x<input id="resize_factor" type="number" value="1" min="1" max="20"/></div>
 <div id="alpha" class="config"><input type="checkbox" id="use_transparency" checked /> Allow transparency levels: <input id="alpha_quantization" type="number" value="4" min="1" max="255"/></div>
 <div id="html_style" class="config">
@@ -239,7 +259,7 @@ Results
 <div  id="results"></div>
 </td></tr>
 <tr><td colspan="2">
-Copyright &copy;2012 Oded Noam. This tool is free under the GPL. Code is available <a href="https://github.com/odednoam/image2html">here</a>. Read more about it <a href="http://www.odednoam.com/">here</a>.
+Copyright &copy;2012 Oded Noam. This tool is free under the GPL. Code is available <a href="https://github.com/odednoam/image2html">here</a>. Read more about it <a href="http://odednoam.wordpress.com/2012/07/14/converting-bitmap-images-to-plain-html/">here</a>.
 </td></tr>
 </table>
 </body>

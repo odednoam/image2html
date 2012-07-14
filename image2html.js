@@ -407,7 +407,16 @@ function imageToHtml(config, image) {
 	
 	// reduce colors
 	var pixels = imageDataToPixels(imageData.data);
-	var cmap = MMCQ.quantize(pixels, config.colorQ)
+	var cmap;
+	if (config.reduceColors)
+		cmap = MMCQ.quantize(pixels, config.colorQ);
+	else
+		cmap = {'cache': {}, 'map': function(p) {
+			if (this.cache[p] == undefined) 
+				this.cache[p] = [p[0],p[1],p[2]];
+			return this.cache[p];
+		} };
+	
 	// Apply compression
 	var table;
 	switch (config.algorithm) {
