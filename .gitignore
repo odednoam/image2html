@@ -163,4 +163,4 @@ pip-log.txt
 .DS_Store
 
 # Do not checkin ZIPs prepared for static hosting provider
-.zip
+*.zip
