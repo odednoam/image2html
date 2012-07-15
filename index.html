@@ -1,4 +1,4 @@
-﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
 <html>
 <head>
 <title>Image to HTML converter</title>
@@ -190,7 +190,19 @@ function closeResult(event) {
 }
 </script>
 <link rel="stylesheet" type="text/css" href="image2html.css"></link>
-</head>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-33387125-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script></head>
 <body>
 <div id="open_file">
 <input type="file" name="imagefile" id="fileToOpen" onChange="openFile(event);" />
@@ -208,7 +220,7 @@ It supports:
 Known issues: (if you can fix, please do so on <a href="https://github.com/odednoam/image2html">github</a> or discuss the fixes on my <a href="http://odednoam.wordpress.com/2012/07/14/converting-bitmap-images-to-plain-html/">blog</a>)
 <ul>
 <li>The algorithm used to find squares in 2D RLE is not optimal, and possibly images could be compressed better.
-<li>Since compression doesn’t work well for images with too many different pixel colors, I added support for color reduction (quantization) taken from https://gist.github.com/1104622. Many desktop tools have better color reduction, so you might get better quality if you reduce colors on your PC using an image editing program rather than the internal tool.
+<li>Since compression doesn�t work well for images with too many different pixel colors, I added support for color reduction (quantization) taken from https://gist.github.com/1104622. Many desktop tools have better color reduction, so you might get better quality if you reduce colors on your PC using an image editing program rather than the internal tool.
 </ul>
 Complete source code is available under the GPL at <a href="https://github.com/odednoam/image2html">https://github.com/odednoam/image2html</a>
 <br/><br/>
